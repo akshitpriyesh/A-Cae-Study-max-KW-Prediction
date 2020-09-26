@@ -1,0 +1,663 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# In[59]:
+
+
+import matplotlib.pyplot as plt
+import pandas as pd
+import numpy as np
+from sklearn import linear_model
+import tensorflow as tf
+
+
+# In[ ]:
+
+
+pip install tensorflow
+
+
+# In[3]:
+
+
+df= pd.read_csv(r"C:\Users\axe\JupyterNotebooks\datasets\Model_Data.csv")
+df.head()
+
+
+# In[4]:
+
+
+for col in df.columns: 
+    print(col)
+
+
+# In[58]:
+
+
+df.info()
+
+
+# In[5]:
+
+
+df.isnull().values.any()
+
+
+# In[6]:
+
+
+df.isnull().sum().sum()
+
+
+# In[8]:
+
+
+df['Hour'].isnull().values.any()
+
+
+# In[9]:
+
+
+df['Date-Hour'].isnull().values.any()
+
+
+# In[11]:
+
+
+df['Month'].isnull().values.any()
+
+
+# In[12]:
+
+
+df['Year'].isnull().values.any()
+
+
+# In[13]:
+
+
+df['Sum/Win'].isnull().values.any()
+
+
+# In[14]:
+
+
+df['Month'].isnull().values.any()
+
+
+# In[16]:
+
+
+df['Prior Period Temp C'].isnull().values.any()
+
+
+# In[17]:
+
+
+df['Avg Temp C'].isnull().values.any()
+
+
+# In[18]:
+
+
+df['Winter HDD (51 Base)'].isnull().values.any()
+
+
+# In[19]:
+
+
+df['Summer CDD (51 Base)'].isnull().values.any()
+
+
+# In[20]:
+
+
+df['Max Temp C'].isnull().values.any()
+
+
+# In[21]:
+
+
+df['Dew C'].isnull().values.any()
+
+
+# In[25]:
+
+
+df['Humidity'].isnull().values.any()
+
+
+# Humidity has Null Values.
+
+# In[23]:
+
+
+df['Humidity'].isnull().sum()
+
+
+# # Humidity has 2 Null Values.
+
+# In[24]:
+
+
+df['Visibility (km)'].isnull().values.any()
+
+
+# In[26]:
+
+
+df['Visibility (km)'].isnull().sum()
+
+
+# # Visibility (km) has 2 Null Values.
+
+# In[27]:
+
+
+df['Wind Dir'].isnull().values.any()
+
+
+# In[28]:
+
+
+df['Wind Speed (km/h)'].isnull().values.any()
+
+
+# In[30]:
+
+
+df['Wind Speed (km/h)'].isnull().sum()
+
+
+# # Wind Speed (km/h) has 1 Null Values.
+
+# In[31]:
+
+
+df['Gust Speed (km/h)'].isnull().values.any()
+
+
+# In[32]:
+
+
+df['Gust Speed (km/h)'].isnull().sum()
+
+
+# # Gust Speed (km/h) has 6668 Null Values.
+
+# In[33]:
+
+
+df['Precip (mm)'].isnull().values.any()
+
+
+# In[36]:
+
+
+df['Precip (mm)'].isnull().sum()
+
+
+# # Precip (mm) has 8066 Null Values.
+
+# In[37]:
+
+
+df['Events'].isnull().values.any()
+
+
+# In[38]:
+
+
+df['Events'].isnull().sum()
+
+
+# # Events has 7766 Null Values.
+
+# In[39]:
+
+
+df['Conditions'].isnull().values.any()
+
+
+# In[40]:
+
+
+df['Max kW'].isnull().values.any()
+
+
+# In[35]:
+
+
+df.describe()
+
+
+# In[41]:
+
+
+df.dtypes
+
+
+# In[42]:
+
+
+df.fillna(df.mean())
+
+
+# In[45]:
+
+
+df['Humidity'].fillna((df['Humidity'].mean()), inplace=True)
+
+
+# In[47]:
+
+
+df['Humidity'].isnull().values.any()
+
+
+# In[48]:
+
+
+df['Visibility (km)'].fillna((df['Humidity'].mean()), inplace=True)
+
+
+# In[50]:
+
+
+df['Visibility (km)'].isnull().values.any()
+
+
+# In[49]:
+
+
+df['Wind Speed (km/h)'].fillna((df['Humidity'].mean()), inplace=True)
+
+
+# In[51]:
+
+
+df.info()
+
+
+# In[52]:
+
+
+## Return a tuple representing the dimensionality of the DataFrame.
+print("Shape of the data: {} --> n_rows = {}, n_cols = {}".format(df.shape, df.shape[0],df.shape[1]))
+
+
+# In[53]:
+
+
+df.tail(10)
+
+
+# Then, we can use the array to index our dataframe. For example, here I want to see the first and the last 5 samples:
+
+# In[54]:
+
+
+df.iloc[np.r_[0:5, -5:0]]
+
+
+# In[55]:
+
+
+dataset = df.drop(['Gust Speed (km/h)','Precip (mm)','Events'], axis=1)
+
+
+# In[56]:
+
+
+dataset.head()
+
+
+# In[ ]:
+
+
+dataset.hist(figsize=(16,12))
+plt.show()
+
+
+# In[57]:
+
+
+dataset.info()
+
+
+# In[ ]:
+
+
+power_info.date = dataset.to_datetime(dataset.date)
+power_info.set_index(['date'], inplace=True)       
+power_info.head()
+
+
+# In[ ]:
+
+
+def clear_wind(obj):
+    if isinstance(obj, str):
+        if obj == 'No wind':
+            obj = 0
+        else:
+            obj = obj.replace(' km/h', '')
+    return obj
+def trans_from_objects(weather):
+    df.drop(['date', 'visibility'], axis =1, inplace=True)
+    df  = df.apply(lambda x: x.replace(' mbar', '') 
+                                    if isinstance(x, str) else x).astype(float)
+    
+    humidity = df.humidity.apply(lambda x: x.replace('%', '') 
+                                    if isinstance(x, str) else x).astype(float)
+    temp = df.temp.apply(lambda x: x.replace('°C', '') 
+                                    if isinstance(x, str) else x).astype(float)
+    wind = df.wind.apply(clear_wind).astype(float)
+    
+    return weather
+
+#transfer dataframe from objects dtype to numbers
+weather_tran = trans_from_objects(weather)
+weather_tran.head()
+
+
+# In[ ]:
+
+
+#Form the date column 
+def create_date(weather):    
+    weather['date'] = weather.apply(lambda row:
+                                    f'{row.year}-{row.month}-{row.day} {row.clock}', axis=1)
+    weather.date = pd.to_datetime(weather.date)
+    return weather.drop(['time', 'year', 'month', 'day'], axis = 1)
+
+weather_pretty = create_date(weather_tran)
+weather_pretty.head()
+
+
+# In[ ]:
+
+
+#to take the average of each day, so we have daily weather. Because we have the daily cum_power not hourly
+import datetime 
+def take_average_weather(weather):
+    average_weather = pd.DataFrame(columns = ['temp', 'weather', 'wind', 'humidity', 'barometer',
+                                              'date'])
+
+    temp, wind, humidity, barometer, counter= [0]*5
+    for i in range(len(weather)):
+        if (weather.loc[i, 'date'].time() ==datetime.time(0, 20)) and (i!=0):
+            average_weather = average_weather.append({
+                'temp':temp/counter,
+                'wind':wind/counter,
+                'humidity':humidity/counter,
+                'barometer':barometer/counter,
+                'date':pd.to_datetime(weather.loc[i-1, 'date'].date()),
+                'weather':weath
+            }, ignore_index=True)
+            temp, wind, humidity, barometer, counter= [0]*5
+            
+        #Here we'll take the weather status in the most powerful hour (15:20), because you can't take averge 
+                                                                                                    #here.
+        if (weather.loc[i, 'date'].time()==datetime.time(15,20)):
+            weath = weather.loc[i, 'weather']
+        counter += 1
+        temp += weather.loc[i, 'temp']
+        wind += weather.loc[i, 'wind']
+        humidity += weather.loc[i, 'humidity']
+        barometer += weather.loc[i, 'barometer']
+        
+    return average_weather
+average_weather = take_average_weather(weather_pretty)
+
+
+# In[ ]:
+
+
+import seaborn as sns
+weather_counts = final_dataset.weather.value_counts()
+plt.figure(figsize=(16,5))
+sns.barplot(weather_counts.index, weather_counts.values, alpha=0.8)
+plt.xticks(rotation=90)
+plt.title('Weather Status')
+plt.xlabel('Status')
+plt.ylabel('Number Of Repetition')
+plt.show() 
+
+
+# In[ ]:
+
+
+final_dataset = final_dataset.reset_index()
+
+
+for i in range(len(final_dataset)):
+    weather_list = final_dataset.loc[i, 'weather'].split('.')
+    if len(weather_list) > 2:
+        final_dataset.loc[i,'weather'] = weather_list[1].strip()
+    elif len(weather_list) ==2:
+        final_dataset.loc[i, 'weather'] = weather_list[0].strip()
+final_dataset.head()
+
+#get the index back to "date"
+final_dataset.set_index('date', inplace=True)
+
+
+# In[ ]:
+
+
+from matplotlib import pyplot as plt
+final_dataset.weather.value_counts()
+weather_counts = final_dataset.weather.value_counts()
+
+plt.figure(figsize=(12,6))
+sns.barplot(weather_counts.index, weather_counts.values, alpha=0.8)
+plt.xticks(rotation=33)
+plt.title('Weather Status')
+plt.xlabel('Status')
+plt.ylabel('Number Of Repetition')
+plt.show()
+
+
+# In[ ]:
+
+
+final_dataset.hist(figsize=(16,12))
+plt.show()
+
+
+# In[ ]:
+
+
+def reduce_categories(weather):
+    #Delete all first parts of two-part status, and highligh only the necessary categories. 
+    #why the first part? Because we don't care about the raining or snowing weather, we care more about 
+    #status of clouds
+    for i in range(len(weather)):
+        weather_list = weather.loc[i, 'weather'].split('.')
+        if len(weather_list) > 2:
+            weather.loc[i,'weather'] = weather_list[1].strip()
+        elif len(weather_list) ==2:
+            weather.loc[i, 'weather'] = weather_list[0].strip()
+
+    weather.weather = weather.weather.map({
+        'Ice fog':'Fog',
+        'Haze':'Fog',
+        'Fog':'Fog',
+        'Clear':'Sunny',
+        'Sunny':'Sunny',
+        'Broken clouds':'Scattered clouds',
+        'Scattered clouds':'Scattered clouds',
+        'Overcast':'Cloudy',
+        'More clouds than sun':'Cloudy',
+        'More sun than clouds':'Sunny',
+        'Low clouds':'Cloudy',
+        'Mostly cloudy':'Cloudy',
+        'Cloudy':'Cloudy',
+        'Passing clouds':'Passing clouds',
+        'Partly sunny':'Partly sunny',
+        'Mostly sunny':'Sunny'
+    },na_action='ignore')
+    return weather
+final_dataset = reduce_categories(final_dataset)
+
+#get the index back to "date"
+final_dataset.set_index('date', inplace=True)
+
+
+# In[ ]:
+
+
+from matplotlib import pyplot as plt
+final_dataset.weather.value_counts()
+weather_counts = final_dataset.weather.value_counts()
+
+plt.figure(figsize=(12,6))
+sns.barplot(weather_counts.index, weather_counts.values, alpha=0.8)
+plt.xticks(rotation=33)
+plt.title('Weather Status')
+plt.xlabel('Status')
+plt.ylabel('Number Of Repetition')
+plt.show()
+
+
+# In[ ]:
+
+
+final_dataset.hist(figsize=(16,12))
+plt.show()
+
+
+# In[ ]:
+
+
+from sklearn.model_selection import train_test_split 
+train_set, test_set = train_test_split(final_dataset, test_size=0.3, 
+                                                   random_state=42) 
+df = train_set.copy() 
+df.describe() 
+
+
+# In[ ]:
+
+
+df.corr() 
+
+
+# In[ ]:
+
+
+from pandas.plotting import scatter_matrix 
+scatter_matrix(df, figsize=(16,18), alpha=0.4) 
+plt.show()
+
+
+# In[ ]:
+
+
+df.plot(kind='scatter', x= 'humidity',y='day_power', figsize=(9,7), alpha=0.4) 
+plt.show()
+
+
+# In[ ]:
+
+
+#To delete data anomalies
+import random
+df.day_power = df.day_power.apply(lambda x: x+random.randint(0,50)/100 if x==0 else x)
+for i in range(1,34):
+    df.day_power = df.day_power.apply(lambda x: x+random.randint(-50,50)/100 if x==i else x)
+df.plot(kind='scatter', x= 'humidity',y='day_power', figsize=(9,7), alpha=0.4) 
+plt.show()
+
+
+# In[ ]:
+
+
+from sklearn.pipeline import Pipeline 
+from sklearn.compose import ColumnTransformer 
+from sklearn.preprocessing import OneHotEncoder 
+from sklearn.impute import SimpleImputer 
+from sklearn.preprocessing import MinMaxScaler 
+
+
+num_pipeline = Pipeline([ 
+    ('imputer', SimpleImputer(strategy='median')), 
+    ('scaler', MinMaxScaler()) 
+]) 
+
+cat_pipeline = Pipeline([ 
+    ('encoder', OneHotEncoder()) 
+]) 
+
+full_pipeline = ColumnTransformer([ 
+    ('num_pipeline', num_pipeline, num_attr),
+    ('cat_pipeline', cat_pipeline, cat_attr) 
+]) 
+
+
+# In[ ]:
+
+
+prepared_features = full_pipeline.fit_transform(features)
+
+
+# In[ ]:
+
+
+
+from sklearn.linear_model import LinearRegression 
+from sklearn.metrics import mean_squared_error as mse 
+from sklearn.model_selection import cross_val_score  
+
+lin_reg = LinearRegression() 
+lin_reg.fit(prepared_features, labels) 
+y_predicted = lin_reg.predict(prepared_features) 
+scores = cross_val_score(lin_reg, prepared_features, labels, 
+                         scoring='neg_mean_squared_error', cv=10) 
+scores=np.sqrt(-scores) 
+display(scores.mean()) 
+scores.std() 
+
+
+# In[ ]:
+
+
+scores = cross_val_score(lin_reg, prepared_test, test_labels, 
+                         scoring='neg_mean_squared_error', cv=10) 
+scores=np.sqrt(-scores) 
+display(scores.mean()) 
+scores.std() 
+
+
+# In[ ]:
+
+
+avg=[]
+labels_avg = []
+for i in range(len(test_labels)):
+    avg.append(test_labels[i])
+    if i % 40 == 0:
+        labels_avg.append(np.array(avg).mean())
+        avg.clear()
+avg=[]
+pred_avg = []
+for i in range(len(test_predicted)):
+    avg.append(test_predicted[i])
+    if i % 40 == 0:
+        pred_avg.append(np.array(avg).mean())
+        avg.clear()
+
+
+# In[ ]:
+
+
+plt.figure(figsize=(16,6))
+plt.plot(range(len(labels_avg)), labels_avg)
+plt.plot(range(len(pred_avg)), pred_avg, 'r')
+plt.title('Comparison between average predicted values and real ones in the test set')
+plt.ylabel('Day Power')
+plt.xlabel('Average Of Test Samples')
+plt.legend(['Real Power', 'Predicted Power'])
+plt.show()
+
